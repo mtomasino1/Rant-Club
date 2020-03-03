@@ -34,7 +34,7 @@ client.once('ready', () => {
     Stamps.sync()
 });
 
-client.login('Njc3MjUyMjY2Njg3ODU2NzE4.XkR1mQ.y3Mal7RU120-mwjSaYmhJTtlonY');
+client.login('token');
 
 client.on('message', async msg => {
     if(msg.channel.name == 'bot-test') {
