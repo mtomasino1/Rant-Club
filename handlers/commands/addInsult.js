@@ -10,6 +10,10 @@ class addInsult extends commandBase
     }
 
     async execute(user, msg, args) {
+        if (args == ""){
+            await msg.channel.send("Include an insult after your command");
+            return;
+        }
         try {
             await this.models.Insults.create({text : args});
             await msg.channel.send("**" + args + "** has been added as an insult for future offendors");
