@@ -1,3 +1,4 @@
+//Do not change this file. It will pick up other commands in this same directory
 const fs = require('fs');
 const path = require('path');
 const basename = path.basename(__filename);

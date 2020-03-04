@@ -1,3 +1,5 @@
+//Do not change this file. It will automatically pick up new models in the same directory
+
 'use strict';
 
 const fs = require('fs');
