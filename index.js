@@ -1,94 +1,74 @@
 const Discord = require('discord.js');
 const Sequelize = require('sequelize');
 const client = new Discord.Client();
+const dotenv = require('dotenv');
+dotenv.config();
 
-const defaultCooldown = 10000;
-const PREFIX = '!';
+//This loads all data models at once
+const models = require('./models');
 
-const sequelize = new Sequelize('database', 'user', 'password', {
-	host: 'localhost',
-	dialect: 'sqlite',
-	logging: false,
-	storage: 'database.sqlite',
+//Load our handlers
+const editHandler = require('./handlers/edit')(models);
+const commandHandler = require('./handlers/commands')(models);
+
+client.login(process.env.BOT_TOKEN);
+
+client.once('ready', async () => {
+    await models.sequelize.sync();
+    console.log('Ready!');
 });
 
-const Stamps = sequelize.define('stamps', {
-	username: {
-		type: Sequelize.STRING,
-		unique: true,
-	},
-	timestamp: {
-		type: Sequelize.INTEGER,
-		defaultValue: 0,
-		allowNull: false,
-    },
-    cooldown: {
-        type: Sequelize.INTEGER,
-		defaultValue: defaultCooldown,
-		allowNull: false,
+client.on('messageUpdate', async (oldMsg, newMsg) => {
+    if (newMsg.channel.name == process.env.CHANNEL_NAME && newMsg.author.id != client.user.id)
+    {
+        await editHandler.deleteAndInsult(newMsg);
     }
 });
 
-client.once('ready', () => {
-    console.log('Ready!');
-    Stamps.sync()
-});
-
-client.login('token');
-
 client.on('message', async msg => {
-    if(msg.channel.name == 'bot-test') {
-        const user = await Stamps.findOne({where: { username: msg.author.id }});
+    if(msg.channel.name == process.env.CHANNEL_NAME && msg.author.id != client.user.id) {
+        var user = await models.Stamps.findOne({where: { username: msg.author.id }});
+        var firstTime = false;
         if(!user) {
-            await Stamps.create({username: msg.author.id, timestamp: msg.createdTimestamp + defaultCooldown, cooldown: defaultCooldown })
+            user = await models.Stamps.create({username: msg.author.id, timestamp: msg.createdTimestamp + parseInt(process.env.DEFAULT_COOLDOWN)})
+            firstTime = true;
+            console.log("New user created. Msg timestamp and wait timestamp are");
+            console.log(msg.createdTimestamp);
+            console.log(user.timestamp);
+        }
+        if (!firstTime && msg.createdTimestamp < user.timestamp) {
+            await msg.delete();
         } else {
-            if (msg.createdTimestamp < user.timestamp) {
-                await msg.delete();
-            } else {
-                user.timestamp = msg.createdTimestamp + user.cooldown;
+            user.timestamp = msg.createdTimestamp + user.cooldown;
+            user.save()
+            
+
+            var date = new Date(msg.createdTimestamp);
+            // Hours part from the timestamp
+            var hours = date.getHours();
+            // Minutes part from the timestamp
+            var minutes = "0" + date.getMinutes();
+            // Seconds part from the timestamp
+            var seconds = "0" + date.getSeconds();
+
+            // Will display time in 10:30:23 format
+            var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+            console.log(formattedTime + ' ' + msg.author.id + ": " + msg.content);
+
+            if (msg.content.startsWith(process.env.COMMAND_PREFIX)) {
+                const input = msg.content.slice(process.env.COMMAND_PREFIX.length).split(' ');
+                const command = input.shift();
+                const commandArgs = input.join(' ');
                 
-
-                var date = new Date(msg.createdTimestamp);
-                // Hours part from the timestamp
-                var hours = date.getHours();
-                // Minutes part from the timestamp
-                var minutes = "0" + date.getMinutes();
-                // Seconds part from the timestamp
-                var seconds = "0" + date.getSeconds();
-
-                // Will display time in 10:30:23 format
-                var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
-                console.log(formattedTime + ' ' + msg.author.id + ": " + msg.content);
-
-                if (msg.content.startsWith(PREFIX)) {
-                    const input = msg.content.slice(PREFIX.length).split(' ');
-                    const command = input.shift();
-                    const commandArgs = input.join(' ');
-                    
-                    if (command === 'setCooldown') {
-                        const splitArgs = commandArgs.split(' ');
-                        const newCooldown = splitArgs.shift()
-                        const userID = splitArgs.join(' ');
-                        if(userID === '') {
-                            user.cooldown = newCooldown;
-                            console.log('Cooldown for ' + msg.author.username + ' set to ' + user.cooldown);
-                        } else {
-                            var IDRegex = /<@!(.+)>/g;
-                            var IDArray = IDRegex.exec(userID);
-                            if(IDArray[1] != undefined) {
-                                const targetUser = await Stamps.findOne({where: { username: IDArray[1] }});
-                                if(targetUser != null) {
-                                    targetUser.cooldown = newCooldown
-                                    targetUser.save();
-                                    console.log('Cooldown for ' + targetUser.username + ' set to ' + targetUser.cooldown);
-                                } else {
-                                    console.log('User not found');
-                                }
-                            }
-                        }
-                    }
+                //This is the block to add your new commands
+                switch(command){
+                    case 'setCooldown':
+                        await commandHandler.setCooldown(user, msg, commandArgs);
+                        break;
+                    case 'addInsult' :
+                        await commandHandler.addInsult(msg, commandArgs);
+                        break;
                 }
-                user.save()
             }
         }
     }
