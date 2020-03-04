@@ -10,8 +10,8 @@ COMMAND_PREFIX=!
 ```
 
 # How to add command handlers
-New commands that respond to ! messages are added by creating a new class and putting it in the `handlers/commands` directory. This class needs to extend the commandBase class. To make it work correctly, you need to take care of the following things:
-* Create a constructor that accepts `models` an argument and sets the `descriptionText`, `helpText`, and `name` properties. These are essential for proper running and showing help information. Example for the addInsult command:
+New commands that respond to ! messages are added by creating a new class and putting it in the `handlers/commands` directory. You shouldn't need to touch any existing files. Your new class needs to extend the commandBase class. To make it work correctly, you need to take care of the following things:
+* Create a constructor that accepts `models` as an argument and sets the `descriptionText`, `helpText`, and `name` properties. These are essential for proper running and showing help information. You also need to call `super(models)` if your command will be accessing the database models. Example for the addInsult command:
 ```
 constructor(models) {
     super(models);
@@ -33,7 +33,7 @@ async execute(user, msg, args) {
     }
 }
 ```
-* The `name` property needs to be unique across the system (case insensitve). If there is a conflict between two commands, the bot won't run at all.
+* The `name` property needs to be unique across the system (case insensitve). If there is a conflict between two commands, the bot won't run at all and throws an exception
 
 ## Notes
 If you have a command idea that requires more information than the `user, msg, args`, you'll need to add that argument to the root `index.js` and also **add it to the execute function of all existing commands**
