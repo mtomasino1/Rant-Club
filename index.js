@@ -36,6 +36,7 @@ client.on('message', async msg => {
             firstTime = true;
         }
         if (!firstTime && msg.createdTimestamp < user.timestamp) {
+            await msg.author.send("Your message was deleted. You need to wait " + ((user.timestamp - msg.createdTimestamp)/1000).toString() + " more seconds.\n > " + msg.content);
             await msg.delete();
         } else {
             user.timestamp = msg.createdTimestamp + user.cooldown;
