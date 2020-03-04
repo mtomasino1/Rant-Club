@@ -1,0 +1,22 @@
+const commandBase = require("./commandBase");
+
+class addInsult extends commandBase
+{
+    constructor(models) {
+        super(models);
+        this.descriptionText = "Lets the user add insults to the database"
+        this.helpText = "Usage: `!addInsult [insult to add]` | Allows other bot operations to randomly use this insult going forward."
+        this.name = "addInsult"
+    }
+
+    async execute(user, msg, args) {
+        try {
+            await this.models.Insults.create({text : args});
+            await msg.channel.send("**" + args + "** has been added as an insult for future offendors");
+        } catch (e) {
+            await msg.channel.send("There was a problem adding that insult");
+        }
+    }
+}
+
+module.exports = addInsult;

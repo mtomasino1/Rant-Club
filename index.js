@@ -9,7 +9,11 @@ const models = require('./models');
 
 //Load our handlers
 const editHandler = require('./handlers/edit')(models);
-const commandHandler = require('./handlers/commands')(models);
+
+//Command-specific handlers
+const insultHandler = require('./handlers/commands/addInsult');
+const setCooldownHandler = require('./handlers/commands/setCooldown');
+const handlers = require('./handlers/commands')(models).handlerList;
 
 client.login(process.env.BOT_TOKEN);
 
@@ -32,9 +36,6 @@ client.on('message', async msg => {
         if(!user) {
             user = await models.Stamps.create({username: msg.author.id, timestamp: msg.createdTimestamp + parseInt(process.env.DEFAULT_COOLDOWN)})
             firstTime = true;
-            console.log("New user created. Msg timestamp and wait timestamp are");
-            console.log(msg.createdTimestamp);
-            console.log(user.timestamp);
         }
         if (!firstTime && msg.createdTimestamp < user.timestamp) {
             await msg.delete();
@@ -60,14 +61,34 @@ client.on('message', async msg => {
                 const command = input.shift();
                 const commandArgs = input.join(' ');
                 
-                //This is the block to add your new commands
-                switch(command){
-                    case 'setCooldown':
-                        await commandHandler.setCooldown(user, msg, commandArgs);
-                        break;
-                    case 'addInsult' :
-                        await commandHandler.addInsult(msg, commandArgs);
-                        break;
+                if (command.toLowerCase() == 'help'){
+                    if (commandArgs == "") {
+                        helpMessage = "Here are all of the ranting commands I accept. You call them via `![commandName] [arguments]`. To get more info, type `!help [commandName]`\n";
+                        handlers.forEach( handler => {
+                            helpMessage += handler.description() + "\n";
+                        });
+                        await msg.channel.send(helpMessage);
+                    } else {
+                        helpMessage = ""
+                        handlers.forEach(handler => {
+                            if (handler.name.toLowerCase() == commandArgs.toLowerCase())
+                                helpMessage = handler.help();
+                        });
+                        if (helpMessage != "")
+                            await msg.channel.send(helpMessage);
+                        else
+                            await msg.channel.send("\"" + commandArgs + "\" does not match any of the commands I know");
+                    }
+                } else {
+                    handlerFound = false;
+                    await Promise.all(handlers.map( async (handler) => {
+                        if (handler.name.toLowerCase() == command.toLowerCase()){
+                            await handler.execute(user, msg, commandArgs);
+                            handlerFound = true;
+                        }
+                    }));
+                    if (!handlerFound)
+                        await msg.channel.send("\"" + command + "\" does not match any of the commands I know");
                 }
             }
         }
