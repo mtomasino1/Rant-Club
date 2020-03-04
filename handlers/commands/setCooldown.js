@@ -18,8 +18,9 @@ class setCooldown extends commandBase
             return;
         }
         if(userID === '') {
-            user.cooldown = newCooldown;
-            await user.save();
+            user.cooldown = parseInt(newCooldown);
+            user.timestamp = parseInt(msg.createdTimestamp) + parseInt(user.cooldown);
+            await user.save()
             await msg.channel.send("Your cooldown has been updated!");
             console.log('Cooldown for ' + msg.author.username + ' set to ' + user.cooldown);
         } else {
@@ -28,7 +29,8 @@ class setCooldown extends commandBase
             if(IDArray[1] != undefined) {
                 const targetUser = await models.Stamps.findOne({where: { username: IDArray[1] }});
                 if(targetUser != null) {
-                    targetUser.cooldown = newCooldown
+                    targetUser.cooldown = parseInt(newCooldown);
+                    targetUser.timestamp = parseInt(msg.createdTimestamp) + parseInt(targetUser.cooldown);
                     await targetUser.save();
                     console.log('Cooldown for ' + targetUser.username + ' set to ' + targetUser.cooldown);
                 } else {
