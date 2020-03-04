@@ -5,7 +5,7 @@ class addInsult extends commandBase
     constructor(models) {
         super(models);
         this.descriptionText = "Lets the user add insults to the database"
-        this.helpText = "Usage: `!addInsult [insult to add]` | Allows other bot operations to randomly use this insult going forward."
+        this.helpText = "Usage: `!addInsult [insult to add]` | Allows other bot operations to randomly use this insult going forward.\n**Phrase your input as self-contained. Like \"is dumb\" or \"wet their pants\". Unless it's a verb, single words won't make sense.**";
         this.name = "addInsult"
     }
 
