@@ -5,7 +5,7 @@ class setCooldown extends commandBase
     constructor(models) {
         super(models);
         this.descriptionText = "Lets the user set his own cooldown"
-        this.helpText = "Usage: `!setCooldown [cooldown in ms] [userID (optional)]` | Lets a user set his own cooldown by default or set another's for him"
+        this.helpText = "Usage: `!setCooldown [cooldown in seconds] [userID (optional)]` | Lets a user set his own cooldown by default or set another's for him"
         this.name = "setCooldown"
     }
 
@@ -16,10 +16,13 @@ class setCooldown extends commandBase
         if (newCooldown == ""){
             await msg.channel.send("You need to include a cooldown in your command");
             return;
+        } else if (parseInt(newCooldown) < process.env.MIN_COOLDOWN)
+        {
+            await msg.channel.send("Cooldown must be >= " + process.env.MIN_COOLDOWN);
+            return;
         }
         if(userID === '') {
-            user.cooldown = parseInt(newCooldown);
-            user.timestamp = parseInt(msg.createdTimestamp) + parseInt(user.cooldown);
+            user.cooldown = parseInt(newCooldown)*1000;
             await user.save()
             await msg.channel.send("Your cooldown has been updated!");
             console.log('Cooldown for ' + msg.author.username + ' set to ' + user.cooldown);
@@ -27,14 +30,15 @@ class setCooldown extends commandBase
             var IDRegex = /<@!(.+)>/g;
             var IDArray = IDRegex.exec(userID);
             if(IDArray[1] != undefined) {
-                const targetUser = await models.Stamps.findOne({where: { username: IDArray[1] }});
+                const targetUser = await this.models.Stamps.findOne({where: { username: IDArray[1] }});
                 if(targetUser != null) {
-                    targetUser.cooldown = parseInt(newCooldown);
-                    targetUser.timestamp = parseInt(msg.createdTimestamp) + parseInt(targetUser.cooldown);
+                    targetUser.cooldown = parseInt(newCooldown)*1000;
                     await targetUser.save();
+                    await msg.channel.send("<@!" + targetUser.username+ "> has an updated cooldown");
                     console.log('Cooldown for ' + targetUser.username + ' set to ' + targetUser.cooldown);
                 } else {
                     console.log('User not found');
+                    await msg.channel.send("User not found");
                 }
             }
         }

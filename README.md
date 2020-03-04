@@ -4,7 +4,9 @@ Here's the bot code that puts admins in line. To get this running on your machin
 ## Example .env file
 ```env
 BOT_TOKEN=token
-DEFAULT_COOLDOWN=10000
+DEFAULT_COOLDOWN=60
+MAX_COOLDOWN=21600
+MIN_COOLDOWN=60
 CHANNEL_NAME=bot-test
 COMMAND_PREFIX=!
 ```

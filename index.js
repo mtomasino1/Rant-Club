@@ -33,7 +33,7 @@ client.on('message', async msg => {
         var user = await models.Stamps.findOne({where: { username: msg.author.id }});
         var firstTime = false;
         if(!user) {
-            user = await models.Stamps.create({username: msg.author.id, timestamp: msg.createdTimestamp + parseInt(process.env.DEFAULT_COOLDOWN)})
+            user = await models.Stamps.create({username: msg.author.id, timestamp: msg.createdTimestamp + parseInt(process.env.DEFAULT_COOLDOWN*1000)})
             firstTime = true;
         }
         if (!firstTime && msg.createdTimestamp < user.timestamp) {

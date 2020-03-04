@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     cooldown: {
         type: Sequelize.INTEGER,
-		defaultValue: parseInt(process.env.DEFAULT_COOLDOWN),
+		defaultValue: parseInt(process.env.DEFAULT_COOLDOWN)*1000,
 		allowNull: false,
     }
   });
