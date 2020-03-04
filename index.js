@@ -18,10 +18,11 @@ client.login(process.env.BOT_TOKEN);
 client.once('ready', async () => {
     await models.sequelize.sync();
     console.log('Ready!');
+    client.channels.find(x => x.name === process.env.CHANNEL_NAME).send("Who's afraid of being banned?");
 });
 
 client.on('messageUpdate', async (oldMsg, newMsg) => {
-    if (newMsg.channel.name == process.env.CHANNEL_NAME && newMsg.author.id != client.user.id)
+    if (newMsg.channel.name == process.env.CHANNEL_NAME && newMsg.author.id != client.user.id && oldMsg.cleanContent != newMsg.cleanContent)    //cleanContent check should prevent deletes caused by discord embedding an image
     {
         await editHandler.deleteAndInsult(newMsg);
     }
