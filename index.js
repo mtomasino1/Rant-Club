@@ -7,12 +7,10 @@ dotenv.config();
 //This loads all data models at once
 const models = require('./models');
 
-//Load our handlers
+//Load our edit handler
 const editHandler = require('./handlers/edit')(models);
 
-//Command-specific handlers
-const insultHandler = require('./handlers/commands/addInsult');
-const setCooldownHandler = require('./handlers/commands/setCooldown');
+//Pull in all command handlers at once
 const handlers = require('./handlers/commands')(models).handlerList;
 
 client.login(process.env.BOT_TOKEN);
