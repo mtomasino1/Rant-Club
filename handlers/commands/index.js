@@ -15,8 +15,17 @@ module.exports = function(models) {
         modules.push(require("./"+file));
     });
 
+    commandNames = [];
+
     modules.forEach(commandModule => {
-        handlerList.push(new commandModule(models))
+        handlerList.push(new commandModule(models));
+    });
+
+    handlerList.forEach(handler => {
+        if (!commandNames.includes(handler.name.toLowerCase()))
+            commandNames.push(handler.name.toLowerCase());
+        else
+            throw (handler.name + " was detected as a duplicate command");
     });
 
     return {
