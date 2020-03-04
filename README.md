@@ -1,6 +1,7 @@
-"# Rant-Club" 
+# Rant-Club
+Here's the bot code that puts admins in line. To get this running on your machine, you should be able to just run `npm install` and make sure you have a .env file that covers the values below.
 
-# Example .env file
+## Example .env file
 ```env
 BOT_TOKEN=token
 DEFAULT_COOLDOWN=10000
@@ -10,11 +11,11 @@ COMMAND_PREFIX=!
 
 # How to add command handlers
 New commands that respond to ! messages are added by creating a new class and putting it in the `handlers/commands` directory. This class needs to extend the commandBase class. To make it work correctly, you need to take care of the following things:
-* Create a constructor that accepts `models` an argument and sets the `description`, `helpText`, and `name` properties. These are essential for proper running and showing help information. Example for the addInsult command:
+* Create a constructor that accepts `models` an argument and sets the `descriptionText`, `helpText`, and `name` properties. These are essential for proper running and showing help information. Example for the addInsult command:
 ```
 constructor(models) {
     super(models);
-    this.description = "Lets the user add insults to the database"
+    this.descriptionText = "Lets the user add insults to the database"
     this.helpText = "Usage: `!addInsult [insult to add]` | Allows other bot operations to randomly use this insult going forward."
     this.name = "addInsult"
 }
