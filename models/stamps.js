@@ -2,9 +2,13 @@
 const Sequelize = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   var Stamps = sequelize.define('Stamps', {
-    username: {
+    discordId: {
 		type: Sequelize.STRING,
 		unique: true,
+	},
+	tag: {
+		type: Sequelize.STRING,
+		unique: true
 	},
 	timestamp: {
 		type: Sequelize.INTEGER,

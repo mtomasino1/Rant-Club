@@ -18,7 +18,7 @@ client.login(process.env.BOT_TOKEN);
 client.once('ready', async () => {
     await models.sequelize.sync();
     console.log('Ready!');
-    client.channels.find(x => x.name === process.env.CHANNEL_NAME).send("Who's afraid of being banned?");
+    await client.channels.find(x => x.name === process.env.CHANNEL_NAME).send("Who's afraid of being banned?");
 });
 
 client.on('messageUpdate', async (oldMsg, newMsg) => {
@@ -30,10 +30,10 @@ client.on('messageUpdate', async (oldMsg, newMsg) => {
 
 client.on('message', async msg => {
     if(msg.channel.name == process.env.CHANNEL_NAME && msg.author.id != client.user.id) {
-        var user = await models.Stamps.findOne({where: { username: msg.author.id }});
+        var user = await models.Stamps.findOne({where: { discordId: msg.author.id }});
         var firstTime = false;
         if(!user) {
-            user = await models.Stamps.create({username: msg.author.id, timestamp: msg.createdTimestamp + parseInt(process.env.DEFAULT_COOLDOWN*1000)})
+            user = await models.Stamps.create({discordId: msg.author.id, tag: msg.author.tag, timestamp: msg.createdTimestamp + parseInt(process.env.DEFAULT_COOLDOWN*1000)})
             firstTime = true;
         }
         if (!firstTime && msg.createdTimestamp < user.timestamp) {

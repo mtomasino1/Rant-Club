@@ -30,11 +30,11 @@ class setCooldown extends commandBase
             var IDRegex = /<@!(.+)>/g;
             var IDArray = IDRegex.exec(userID);
             if(IDArray[1] != undefined) {
-                const targetUser = await this.models.Stamps.findOne({where: { username: IDArray[1] }});
+                const targetUser = await this.models.Stamps.findOne({where: { discordId: IDArray[1] }});
                 if(targetUser != null) {
                     targetUser.cooldown = parseInt(newCooldown)*1000;
                     await targetUser.save();
-                    await msg.channel.send("<@!" + targetUser.username+ "> has an updated cooldown");
+                    await msg.channel.send("<@!" + targetUser.discordId+ "> has an updated cooldown");
                     console.log('Cooldown for ' + targetUser.username + ' set to ' + targetUser.cooldown);
                 } else {
                     console.log('User not found');
