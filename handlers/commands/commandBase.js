@@ -4,6 +4,7 @@ class commandBase {
         this.helpText = ""
         this.descriptionText = ""
         this.name = ""
+        this.allowDuringCooldown = false
     }
 
     help(){
@@ -11,6 +12,9 @@ class commandBase {
     }
     description(){
         return "**" + this.name + "** : " + this.descriptionText;
+    }
+    getAllowDuringCooldown(){
+        return this.allowDuringCooldown;
     }
 
     async execute(user, msg, args){

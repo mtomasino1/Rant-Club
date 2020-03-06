@@ -16,7 +16,7 @@ class addInsult extends commandBase
         }
         try {
             await this.models.Insults.create({text : args});
-            await msg.channel.send("**" + args + "** has been added as an insult for future offendors");
+            await msg.channel.send("**" + args + "** has been added as an insult for future offenders");
         } catch (e) {
             await msg.channel.send("There was a problem adding that insult");
         }

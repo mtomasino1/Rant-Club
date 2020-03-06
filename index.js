@@ -32,13 +32,15 @@ client.on('message', async msg => {
     if(msg.channel.name == process.env.CHANNEL_NAME && msg.author.id != client.user.id) {
         var user = await models.Stamps.findOne({where: { discordId: msg.author.id }});
         var firstTime = false;
+        var cooldownViolated = false;
+
         if(!user) {
             user = await models.Stamps.create({discordId: msg.author.id, tag: msg.author.tag, timestamp: msg.createdTimestamp + parseInt(process.env.DEFAULT_COOLDOWN*1000)})
             firstTime = true;
         }
         if (!firstTime && msg.createdTimestamp < user.timestamp) {
-            await msg.author.send("Your message was deleted. You need to wait " + ((user.timestamp - msg.createdTimestamp)/1000).toString() + " more seconds.\n > " + msg.content);
-            await msg.delete();
+            cooldownViolated = true;
+            
         } else {
             user.timestamp = msg.createdTimestamp + user.cooldown;
             user.save()
@@ -56,41 +58,52 @@ client.on('message', async msg => {
             var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
             console.log(formattedTime + ' ' + msg.author.id + ": " + msg.content);
 
-            if (msg.content.startsWith(process.env.COMMAND_PREFIX)) {
-                const input = msg.content.slice(process.env.COMMAND_PREFIX.length).split(' ');
-                const command = input.shift();
-                const commandArgs = input.join(' ');
-                
-                if (command.toLowerCase() == 'help'){
-                    if (commandArgs == "") {
-                        helpMessage = "Here are all of the ranting commands I accept. You call them via `![commandName] [arguments]`. To get more info, type `!help [commandName]`\n";
-                        handlers.forEach( handler => {
-                            helpMessage += handler.description() + "\n";
-                        });
-                        await msg.channel.send(helpMessage);
-                    } else {
-                        helpMessage = ""
-                        handlers.forEach(handler => {
-                            if (handler.name.toLowerCase() == commandArgs.toLowerCase())
-                                helpMessage = handler.help();
-                        });
-                        if (helpMessage != "")
-                            await msg.channel.send(helpMessage);
-                        else
-                            await msg.channel.send("\"" + commandArgs + "\" does not match any of the commands I know");
-                    }
-                } else {
-                    handlerFound = false;
-                    await Promise.all(handlers.map( async (handler) => {
-                        if (handler.name.toLowerCase() == command.toLowerCase()){
-                            await handler.execute(user, msg, commandArgs);
-                            handlerFound = true;
-                        }
-                    }));
-                    if (!handlerFound)
-                        await msg.channel.send("\"" + command + "\" does not match any of the commands I know");
-                }
-            }
         }
+
+        if (msg.content.startsWith(process.env.COMMAND_PREFIX)) {
+            const input = msg.content.slice(process.env.COMMAND_PREFIX.length).split(' ');
+            const command = input.shift();
+            const commandArgs = input.join(' ');
+            
+            if (command.toLowerCase() == 'help'){
+                if (commandArgs == "") {
+                    helpMessage = "Here are all of the ranting commands I accept. You call them via `![commandName] [arguments]`. To get more info, type `!help [commandName]`\n";
+                    handlers.forEach( handler => {
+                        helpMessage += handler.description() + "\n";
+                    });
+                    await msg.channel.send(helpMessage);
+                } else {
+                    helpMessage = ""
+                    handlers.forEach(handler => {
+                        if (handler.name.toLowerCase() == commandArgs.toLowerCase())
+                            helpMessage = handler.help();
+                    });
+                    if (helpMessage != "")
+                        await msg.channel.send(helpMessage);
+                    else
+                        await msg.channel.send("\"" + commandArgs + "\" does not match any of the commands I know");
+                }
+                canSetCooldown = false;
+            } else {
+                handlerFound = false;
+                await Promise.all(handlers.map( async (handler) => {
+                    if (handler.name.toLowerCase() == command.toLowerCase()){
+                        if (handler.getAllowDuringCooldown() || !cooldownViolated)
+                            await handler.execute(user, msg, commandArgs);
+                        handlerFound = true;
+                    }
+                }));
+                if (!handlerFound)
+                    await msg.channel.send("\"" + command + "\" does not match any of the commands I know");
+                    
+            }
+        } 
+
+
+        if (cooldownViolated){
+            await msg.author.send("Your message was deleted. You need to wait " + ((user.timestamp - msg.createdTimestamp)/1000).toString() + " more seconds.\n > " + msg.content);
+            await msg.delete();
+        }
+        
     }
 });
