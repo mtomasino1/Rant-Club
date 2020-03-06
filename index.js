@@ -4,6 +4,10 @@ const client = new Discord.Client();
 const dotenv = require('dotenv');
 dotenv.config();
 
+const thisGuy = 185571769371852801;
+const cron = require("cron");
+var onGoingLesson = false;
+
 //This loads all data models at once
 const models = require('./models');
 
@@ -103,6 +107,24 @@ client.on('message', async msg => {
         if (cooldownViolated){
             await msg.author.send("Your message was deleted. You need to wait " + ((user.timestamp - msg.createdTimestamp)/1000).toString() + " more seconds.\n > " + msg.content);
             await msg.delete();
+
+            if (msg.author.id == thisGuy && !onGoingLesson) {
+                onGoingLesson = true
+                await msg.channel.send("Looks like " + msg.author.username + " thinks he's above the law. Time to teach them a lesson.")
+                               
+                let lessonJob = new cron.CronJob('* * * * *', () =>  {
+                    msg.author.send("FEEL BAD");
+                });
+                lessonJob.start();
+
+                var jobStopTime = (user.timestamp - msg.createdTimestamp)
+                setTimeout(() => {
+                    msg.author.send("Your punishment is over. Hope you learned a valuable lesson.");
+                    lessonJob.stop();
+                    onGoingLesson = false;
+                }, jobStopTime);
+                    
+            }
         }
         
     }
