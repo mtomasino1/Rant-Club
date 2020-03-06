@@ -7,6 +7,7 @@ class currentCooldowns extends commandBase
         this.descriptionText = "Lists all users with their current cooldowns"
         this.helpText = "Usage: `!currentCooldowns` | That's really all there is to it.";
         this.name = "currentCooldowns"
+        this.allowDuringCooldown = true
     }
 
     async execute(user, msg, args) {
